@@ -1,8 +1,9 @@
 import heapq
 
 def a_star(start, end, real_distances, heuristic_distances, line_stations):
+
     # Inicialização da fila de prioridade heap
-    heap = [(0, start, [])]
+    heap = [(0, start, [], "")]
     
     # Inicialização do conjunto de nós visitados
     visited = set()
@@ -14,7 +15,7 @@ def a_star(start, end, real_distances, heuristic_distances, line_stations):
     # Loop principal para busca de caminho
     while heap:
         # Obtém o nó com o menor score "f" (soma de "g" e heurística) da fila de prioridade
-        (f_score, current, path) = heapq.heappop(heap)
+        (f_score, current, path, antigo) = heapq.heappop(heap)
     
         # Verifica se o nó já foi visitado
         if current in visited:
@@ -29,7 +30,7 @@ def a_star(start, end, real_distances, heuristic_distances, line_stations):
         # Verifica se o nó é o destino
         if current == end:
             break
-    
+            
         # Verifica todos os vizinhos do nó atual
         for neighbor in real_distances[current].keys():
     
@@ -37,16 +38,22 @@ def a_star(start, end, real_distances, heuristic_distances, line_stations):
             if neighbor in visited:
                 continue
             transfer_time = 4 ######################
-    
+
+            #print que mostra a linha ultilizada versus a linha que sera utilizada em cada vizinho
+            # print(f"atual {set(line_stations[current]) & set(line_stations[neighbor])} | antigo {antigo}")
+
             # Verifica se o nó current e o nó neighbor estão na mesma linha de trem
-            if set(line_stations[current]) & set(line_stations[neighbor]):
+            if antigo == (set(line_stations[current]) & set(line_stations[neighbor])):
                 transfer_time = 0
             
+            #armazena a linha percorrida
+            atual = set(line_stations[current]) & set(line_stations[neighbor])
+
             # Print com intuito de debug para checar incremento do tempo de baldeação 
             #print(line_stations[current]," ", line_stations[neighbor], " ", set(line_stations[current]) & set(line_stations[neighbor]))
     
             # Calcula o score "g" para o vizinho
-            tentative_g_score = g_scores[current] + real_distances[current][neighbor] / 30 + transfer_time / 60
+            tentative_g_score = g_scores[current] + (real_distances[current][neighbor] / 30) + (transfer_time / 60)
     
             # Verifica se o score "g" calculado é maior que o score "g" atual do vizinho
             if tentative_g_score >= g_scores[neighbor]:
@@ -59,7 +66,7 @@ def a_star(start, end, real_distances, heuristic_distances, line_stations):
             f_score = g_scores[neighbor] + heuristic_distances[int(neighbor[1:])-1][int(end[1:])-1] / 30 #km/h
     
             # Adiciona o vizinho à fila de prioridade
-            heapq.heappush(heap, (f_score, neighbor, path))
+            heapq.heappush(heap, (f_score, neighbor, path, atual))
         
         #printando fronteira
         front_heap = list(heap)
@@ -153,8 +160,8 @@ heuristic_distances = [
         [29.8, 21.8, 16.6, 15.4, 17.9, 18.2, 15.6, 27.6, 26.6, 21.2, 35.5, 33.6, 5.1,  0   ]  # Estação E14
     ]
 
-start = "E11"
-end = "E4"
+start = "E1"
+end = "E11"
 
 path, distance, time, lines_traversed = a_star(start, end, real_distances, heuristic_distances, line_stations)
 print("")
